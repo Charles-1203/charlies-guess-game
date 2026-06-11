@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Charlie's Guess Game</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+height:100vh;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+font-family:'Segoe UI',sans-serif;
+
+background:linear-gradient(
+-45deg,
+#0f172a,
+#1e293b,
+#3b82f6,
+#9333ea
+);
+
+background-size:400% 400%;
+
+animation:bgMove 10s ease infinite;
+
+color:white;
+}
+
+@keyframes bgMove{
+
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+
+}
+
+.card{
+
+width:650px;
+
+padding:40px;
+
+border-radius:25px;
+
+background:rgba(255,255,255,.08);
+
+backdrop-filter:blur(15px);
+
+text-align:center;
+
+box-shadow:0 0 30px rgba(0,0,0,.4);
+}
+
+input{
+
+width:100%;
+
+padding:15px;
+
+margin-top:15px;
+
+border:none;
+
+border-radius:12px;
+
+font-size:18px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{
+
+-webkit-appearance:none;
+margin:0;
+
+}
+
+button{
+
+width:100%;
+
+padding:15px;
+
+margin-top:15px;
+
+border:none;
+
+border-radius:12px;
+
+font-size:18px;
+
+font-weight:bold;
+
+background:#22c55e;
+
+color:white;
+
+cursor:pointer;
+}
+
+#gameArea{
+display:none;
+}
+
+#attemptCounter{
+
+margin-top:15px;
+
+font-size:22px;
+
+font-weight:bold;
+}
+
+#hint{
+
+margin-top:20px;
+
+font-size:26px;
+
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<div id="startArea">
+
+<h1>🎯 Charlie's Guess Game</h1>
+
+<input
+type="text"
+id="name"
+placeholder="Enter Your Name">
+
+<button onclick="startGame()">
+Start Game
+</button>
+
+</div>
+
+<div id="gameArea">
+
+<h1 id="welcome"></h1>
+
+<h2>Guess a Number Between 1 and 100</h2>
+
+<p id="attemptCounter">
+Attempts: 0
+</p>
+
+<input
+type="number"
+id="guess"
+placeholder="Enter Your Guess">
+
+<button onclick="submitGuess()">
+Submit Guess
+</button>
+
+<div id="hint"></div>
+
+</div>
+
+</div>
+
+<script>
+
+function startGame(){
+
+let name=document.getElementById("name").value;
+
+if(name.trim()===""){
+alert("Please Enter Your Name");
+return;
+}
+
+fetch("/start",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name:name
+})
+
+})
+
+.then(response=>response.json())
+
+.then(data=>{
+
+document.getElementById("startArea").style.display="none";
+
+document.getElementById("gameArea").style.display="block";
+
+document.getElementById("welcome").innerHTML=
+"👋 Welcome " + data.name;
+
+document.getElementById("guess").focus();
+
+});
+
+}
+
+function submitGuess(){
+
+let guess=document.getElementById("guess").value;
+
+if(guess===""){
+return;
+}
+
+fetch("/guess",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+guess:guess
+})
+
+})
+
+.then(response=>response.json())
+
+.then(data=>{
+
+if(data.status==="continue"){
+
+document.getElementById("hint").innerHTML=
+data.message;
+
+document.getElementById("attemptCounter").innerHTML=
+"Attempts: " + data.attempts;
+
+document.getElementById("guess").value="";
+
+document.getElementById("guess").focus();
+
+}
+else{
+
+window.location.href="/score";
+
+}
+
+});
+
+}
+
+document.addEventListener("keypress",function(event){
+
+if(event.key==="Enter"){
+
+if(document.getElementById("startArea").style.display!=="none"){
+startGame();
+}
+else{
+submitGuess();
+}
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
